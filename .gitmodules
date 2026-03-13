@@ -1,3 +1,6 @@
 [submodule "virtual-machines/ubuntu-devbox"]
 	path = virtual-machines/ubuntu-devbox
 	url = git@github.com:rokene/ubuntu-devbox.git
+[submodule "projects/cloud-platform"]
+	path = projects/cloud-platform
+	url = git@github.com:rokene/cloud-platform.git
