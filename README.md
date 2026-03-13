@@ -6,6 +6,12 @@ A super project for the purpose of general software development.
 
 Available VMs can be found [here](./virtual-machines/README.md).
 
+## Projects
+
+Projects that are tracked here.
+
+* [cloud-platform](./projects/cloud-platform/README.md)
+
 # Usage
 
 First time cloning.
