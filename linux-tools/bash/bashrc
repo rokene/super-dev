@@ -1,0 +1,36 @@
+
+# Configures a socks5 proxy
+socks() {
+  local host=$1
+  local port=${2:-1080}
+
+  if [[ -z "$host" ]]; then
+    echo "Usage: socks <host> [port]"
+    return 1
+  fi
+
+  # Remove -q so we can see errors if they happen during startup
+  ssh -f -D "127.0.0.1:${port}" \
+      -N \
+      -o StrictHostKeyChecking=no \
+      -o ServerAliveInterval=30 \
+      -o ExitOnForwardFailure=yes \
+      "azureuser@${host}"
+
+  if [ $? -eq 0 ]; then
+    echo "SOCKS5 proxy successfully started in background on port ${port}"
+  else
+    echo "Failed to start SOCKS5 proxy. Check your SSH config or keys."
+  fi
+}
+
+# List all SSH hosts defined in ~/.ssh/config
+list-ssh() {
+    if [ ! -f ~/.ssh/config ]; then
+        echo "No SSH config file found at ~/.ssh/config"
+        return 1
+    fi
+
+    echo -e "\033[1;34mAvailable SSH Hosts:\033[0m"
+    grep -i "^Host" ~/.ssh/config | grep -v "*" | awk '{print "  • " $2}'
+}
