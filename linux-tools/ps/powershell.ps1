@@ -1,18 +1,10 @@
 # --- SSH & SOCKS UTILITIES ---
 
 function Get-SshList {
-    # Dynamically build the path using the UserProfile environment variable
     $sshConfig = Join-Path $env:USERPROFILE ".ssh\config"
-    
-    if (-not (Test-Path $sshConfig)) {
-        Write-Host "SSH Config not found at $sshConfig" -ForegroundColor Red
-        return
-    }
+    if (-not (Test-Path $sshConfig)) { return }
 
     Write-Host "`nDetected SSH Aliases:" -ForegroundColor Cyan
-    
-    # Read the file and match 'Host' followed by the alias
-    # Handles potential encoding quirks by using Get-Content's native parser
     Get-Content $sshConfig | ForEach-Object {
         $line = $_.Trim()
         if ($line -match "^Host\s+(?!Name)(?<alias>[^\s#]+)") {
@@ -22,55 +14,59 @@ function Get-SshList {
     Write-Host ""
 }
 
-function Start-Socks {
+function Start-SocksProxy {
     param (
         [Parameter(Mandatory=$true, Position=0)]
         [string]$Alias,
+
+        [Parameter(Mandatory=$false, Position=1)]
         [int]$Port = 1080
     )
 
-    # Validate port availability
     if (Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue) {
-        Write-Host "Error: Port $Port is already in use by another process." -ForegroundColor Red
+        Write-Host "Error: Port $Port is already in use." -ForegroundColor Red
         return
     }
 
     Write-Host "Opening SOCKS5 proxy via $Alias on port $Port..." -ForegroundColor Cyan
 
-    # Background Job: Uses the native 'ssh' client which naturally respects ~/.ssh/config
     Start-Job -Name "SshSocks_$Port" -ScriptBlock {
         param($a, $p)
         ssh -D "127.0.0.1:$p" -N -o ExitOnForwardFailure=yes $a
-    } | Out-Null
+    } -ArgumentList $Alias, $Port | Out-Null
 
-    # Give the job a moment to attempt the handshake
     Start-Sleep -Seconds 2
-    $job = Get-Job -Name "SshSocks_$Port"
-
-    if ($job.State -eq "Running") {
-        Write-Host "Success: Proxy is active." -ForegroundColor Green
-        Write-Host "Usage: Configure browser/app to SOCKS5 127.0.0.1:$Port" -ForegroundColor Gray
+    if ((Get-Job -Name "SshSocks_$Port").State -eq "Running") {
+        Write-Host "Success: Proxy is active on port $Port." -ForegroundColor Green
     } else {
-        Write-Host "Error: Proxy failed to start. Run 'Receive-Job -Name SshSocks_$Port' to debug." -ForegroundColor Red
+        Write-Host "Error: Proxy failed. Run 'Receive-Job -Name SshSocks_$Port'" -ForegroundColor Red
     }
 }
 
-function Stop-Socks {
+function Stop-SocksProxy {
     param ([int]$Port = 1080)
-    
     $jobName = "SshSocks_$Port"
-    $job = Get-Job -Name $jobName -ErrorAction SilentlyContinue
     
+    $job = Get-Job -Name $jobName -ErrorAction SilentlyContinue
+    $connection = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue
+
     if ($job) {
         Stop-Job $job
         Remove-Job $job
-        Write-Host "SOCKS5 proxy on port $Port has been terminated." -ForegroundColor Yellow
-    } else {
-        Write-Host "No active proxy found on port $Port." -ForegroundColor Gray
+        Write-Host "SOCKS5 Job for port $Port terminated." -ForegroundColor Yellow
+    }
+
+    if ($connection) {
+        Stop-Process -Id $connection.OwningProcess -Force -ErrorAction SilentlyContinue
+        Write-Host "Killed SSH process on port $Port." -ForegroundColor Yellow
+    }
+
+    if (-not $job -and -not $connection) {
+        Write-Host "No active proxy or process found on port $Port." -ForegroundColor Gray
     }
 }
 
-# Aliases for high-speed terminal usage
+# Use 'Set-Alias' but let the function handle the parameters
 Set-Alias ssh-list Get-SshList
-Set-Alias socks Start-Socks
-Set-Alias stop-socks Stop-Socks
+Set-Alias socks Start-SocksProxy
+Set-Alias stopsocks Stop-SocksProxy
