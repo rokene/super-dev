@@ -4,3 +4,9 @@
 [submodule "projects/cloud-platform"]
 	path = projects/cloud-platform
 	url = git@github.com:rokene/cloud-platform.git
+[submodule "education/colorado-state-univ-aiml"]
+	path = education/colorado-state-univ-aiml
+	url = git@github.com:rokene/csu-projects.git
+[submodule "organizations/us-orgs"]
+	path = organizations/us-orgs
+	url = git@github.com:rokene/us-orgs.git
