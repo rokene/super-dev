@@ -1,3 +1,4 @@
+# functions
 
 # Configures a socks5 proxy
 socks() {
