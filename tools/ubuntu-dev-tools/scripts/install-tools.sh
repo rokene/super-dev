@@ -8,7 +8,16 @@ source "${SCRIPT_DIR}/versions.sh"
 
 export DEBIAN_FRONTEND=noninteractive
 
-echo "#### updating apt package index"
+echo "#### Updating apt package index"
+apt-get update
+
+echo "#### Installing repository management tools"
+apt-get install -y software-properties-common
+
+echo "#### Enabling universe repository"
+add-apt-repository -y universe
+
+echo "#### Updating apt package index with universe"
 apt-get update
 
 echo "#### installing development tools and utilities"
@@ -81,6 +90,21 @@ grep -qxF 'alias fd=fdfind' ~/.bashrc || \
 
 grep -qxF 'alias bat=batcat' ~/.bashrc || \
   echo 'alias bat=batcat' >> ~/.bashrc
+
+echo "#### Setting up WSL browser integration via PowerShell"
+cat << 'EOF' > /usr/local/bin/wslview
+#!/usr/bin/env bash
+URL="$1"
+/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -NonInteractive -Command "Start-Process '${URL}'" 2>/dev/null
+EOF
+chmod +x /usr/local/bin/wslview
+
+ln -sf /usr/local/bin/wslview /usr/local/bin/xdg-open
+
+cat << 'EOF' > /etc/profile.d/wsl-browser.sh
+export BROWSER="/usr/local/bin/wslview"
+EOF
+chmod 644 /etc/profile.d/wsl-browser.sh
 
 echo
 echo "==== Installed Tool Versions ===="
