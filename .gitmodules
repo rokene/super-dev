@@ -10,3 +10,6 @@
 [submodule "organizations/us-orgs"]
 	path = organizations/us-orgs
 	url = git@github.com:rokene/us-orgs.git
+[submodule "projects/home-network"]
+	path = projects/home-network
+	url = git@github.com:rokene/home-network.git
