@@ -13,3 +13,6 @@
 [submodule "projects/home-network"]
 	path = projects/home-network
 	url = git@github.com:rokene/home-network.git
+[submodule "projects/agentic-platform"]
+	path = projects/agentic-platform
+	url = git@github.com:rokene/agentic-platform.git
