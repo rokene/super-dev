@@ -1,12 +1,6 @@
 # super-dev
 
-A `personal` super project for the purpose of general software development.
-
-## Projects
-
-Projects that are tracked here.
-
-* [cloud-platform](./projects/cloud-platform/README.md)
+A `personal` super project (meta-repo) for the purpose of general software development.
 
 # Usage
 
